@@ -6,7 +6,7 @@ sidebar: home_sidebar
 ---
 ## What is a GPU?
 
-GPUs are specialized hardware originally created to render games in high frame rates. Graphics texturing and shading require a lot of matrix and vector operations executed in parallel and those chips have been created to take the heat off the CPU while doing that. 
+GPUs (Graphics Processing Units) are specialized computer hardware originally created to render images at high frame rates (most commonly images in video games). Since graphics texturing and shading require more matrix and vector operations executed in parallel than a CPU (Central Processing Unit) can reasonably handle, GPUs were made to perform these calculations more efficiently. 
 
 ## Why a GPU?
 
@@ -23,7 +23,7 @@ Deep Learning really only cares about the number of Floating Point Operations (F
 
 <img alt="gpu_cpu_comparison" src="/images/gpu/gpu_cpu_comparison.png" class="screenshot">
 
-In the chart above, you can see that GPUs (red/green) can theoretically do 10-15x the operations of CPUs (in blue).  This speedup very much applies in practice too. **But do not take our word for it!**  
+In the log scale chart above, you can see that GPUs (red/green) can theoretically do 10-15x the operations of CPUs (in blue).  This speedup very much applies in practice too. **But do not take our word for it!**  
 
 Try running this inside a Jupyter Notebook:
 

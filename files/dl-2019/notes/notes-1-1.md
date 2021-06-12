@@ -1,6 +1,6 @@
 # Lesson 1: Image classification
 
-You can click the blue arrow buttons on the left and right panes to hide them and make more room for the video. You can search the transcript using the text box at the bottom. Scroll down this page for links to many useful resources. If you have any other suggestions for links, edits, or anything else, you'll find an "edit" link at the bottom of this (and every) notes panel.
+You can click the grey arrow buttons next to the left and right panes to hide them and make more room for the video. You can search the transcript using the text box at the bottom. Scroll down this page for links to many useful resources. If you have any other suggestions for links, edits, or anything else, you'll find an "edit" link at the bottom of this (and every) notes panel.
 
 ## Overview
 
@@ -42,6 +42,8 @@ If you want to more deeply understand how PyTorch really works, you may want to 
 - [Beginners Tutorial of Regular Expression](https://www.analyticsvidhya.com/blog/2015/06/regular-expression-python/)
 - [One-Cycle Policy Fitting paper](https://arxiv.org/abs/1803.09820)
 - [Visualizing and Understanding Convolutional Networks (paper)](https://arxiv.org/abs/1311.2901)
+- [Splunk and Tensorflow for Security] (https://www.splunk.com/blog/2017/04/18/deep-learning-with-splunk-and-tensorflow-for-security-catching-the-fraudster-in-neural-networks-with-behavioral-biometrics.html)
+- [Learning Rate Finder Paper](https://arxiv.org/pdf/1506.01186.pdf)
 
 ### How to scrape images
 
@@ -49,6 +51,10 @@ If you want to more deeply understand how PyTorch really works, you may want to 
 - https://forums.fast.ai/t/tips-for-building-large-image-datasets/26688
 - https://forums.fast.ai/t/generating-image-datasets-quickly/19079
 - https://forums.fast.ai/t/how-to-scrape-the-web-for-images/7446/8
+
+## Suggested Practice
+
+Create a model that can correctly classify images. Use lesson2-download.ipynb ([available here in the course repo](https://github.com/fastai/course-v3/tree/master/nbs/dl1)) as a means of guidance. Remember, the more you practice the better you will get!
 
 ---
 

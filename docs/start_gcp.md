@@ -17,26 +17,24 @@ GCP charges separately for the base CPU platform, and the GPU. We have two recom
 
 ### Standard Compute
 
-The base platform we suggest is called `n1-highmem-8`, and costs $0.12 per hour. Attaching a P4 GPU costs $0.26 per hour so both together amount to **$0.38 per hour**. 
+The base platform we suggest is called `n1-highmem-8`, and costs $0.10 per hour. Attaching a P100 GPU costs $0.43 per hour so both together amount to **$0.53 per hour**. 
 
 ### Budget Compute
 
-If you have a tight budget you might want to go with a cheaper setup. In this case, we suggest a `n1-highmem-4` instance ($0.09 per hour) with a K80 GPU ($0.14 per hour), with a total of **$0.23 per hour**. 
-
-According to our benchmarks, a K80 is 84% slower than a P4 so this setup will roughly double your training time. If this is ok with you, you must follow the budget commands when creating your instance.
+If you have a tight budget you might want to go with a cheaper setup. In this case, we suggest a `n1-highmem-4` instance ($0.05 per hour) with the same T4 GPU ($0.11 per hour), for a total of **$0.16 per hour**. 
 
 ### Storage
 
-In both cases, by getting the suggested 200GB Standard Disk storage size ([less storage hampers experience](https://cloud.google.com/compute/docs/disks/)), there will be an **additional charge of $9.60 a month**.
+In both cases, by getting the suggested 200GB Standard Disk storage size ([less storage hampers experience](https://cloud.google.com/compute/docs/disks/)), there will be an **additional charge of $8 a month**. The same size in fast SSD storage costs $34 per month.
 
 ### How much will you use this course
 
 Considering that the course requires, over 2 months, 80 hours of homework plus the 2 hours of working through each lesson, we calculated roughly how much you would spend in the course with each of the setups.
 
-- *Standard Compute* + *Storage*: (80+2\*7)\*$0.38 + $9.6*2 =  **$54.92**
-- *Budget Compute* + *Storage*: (80+2\*7)\*$0.23 + $9.6*2 =  **$40.82**
+- *Standard Compute* + *Storage*: (80+2\*7)\*$0.22 + $8*2 =  **$49.82**
+- *Budget Compute* + *Storage*: (80+2\*7)\*$0.165 + $8*2 =  **$31.51**
 
-Even if you were to work on the course twice the time that we suggest as minimum, your expenditure would amount to **$90.64** which is less than 1/3 of the credits GCP gives you. Therefore we suggest to go for the Standard Compute option.
+Even if you were to work on the course twice the time that we suggest as minimum, your expenditure would amount to **$99.64** which is less than 1/3 of the credits GCP gives you. Therefore we suggest to go for the Standard Compute option.
 
 ## Step 1: Creating your account
 
@@ -92,9 +90,13 @@ Pick cloud project to use:
  ...
  Please enter your numeric choice:
 ```
-Just enter the number next to the project you created on step 1. If you select the choice "Create a new project", you will be reminded you also have to run "gcloud projects create my-project-3".
+Just enter the number next to the project you created on step 1. If you just created your account it will likely have a generated random name for its Project ID. If you select the choice "Create a new project", you will be reminded you also have to run "gcloud projects create my-project-3".
 
-Lastly, you'll be asked if you want to choose a default region, choose us-west1-b if you don't have any particular preference, as it will make the command to connect to this server easier.
+In order to set a default region you'll need to enable the Compute Engine API, the CLI will output a link you can follow to do this.
+
+If you've enabled the Compute Engine API you'll be asked if you want to choose a default region, choose us-west1-b if you don't have any particular preference, as it will make the command to connect to this server easier.
+
+You can modify this later with `gcloud config set compute/zone NAME`
 
 Once this is done, you should see this message on your terminal:
 ```
@@ -115,17 +117,17 @@ If you choose the budget compute option, please replace the values of the parame
 
 ```bash
 export IMAGE_FAMILY="pytorch-latest-gpu" # or "pytorch-latest-cpu" for non-GPU instances
-export ZONE="us-west2-b" # budget: "us-west1-b"
+export ZONE="us-central1-f"
 export INSTANCE_NAME="my-fastai-instance"
 export INSTANCE_TYPE="n1-highmem-8" # budget: "n1-highmem-4"
 
-# budget: 'type=nvidia-tesla-k80,count=1'
+# budget: 'type=nvidia-tesla-t4,count=1'
 gcloud compute instances create $INSTANCE_NAME \
         --zone=$ZONE \
         --image-family=$IMAGE_FAMILY \
         --image-project=deeplearning-platform-release \
         --maintenance-policy=TERMINATE \
-        --accelerator="type=nvidia-tesla-p4,count=1" \
+        --accelerator="type=nvidia-tesla-p100,count=1" \
         --machine-type=$INSTANCE_TYPE \
         --boot-disk-size=200GB \
         --metadata="install-nvidia-driver=True" \
@@ -139,8 +141,8 @@ ERROR: (gcloud.compute.instances.create) Could not fetch resource:
 You need to adjust your GPU quotas.
 1. Go to [Google Cloud Quotas Page](https://console.cloud.google.com/iam-admin/quotas).
 2. If you signed up with a free tier account, you first need to upgrade to a paid account; do so by clicking the "Upgrade account" button at the top right of the page. This won't affect your $300 credit.
-3. In filter type, select metric to be GPUs(all regions) and Location as Global 
-4. Click edit quotas and select the quota to edit(GPUs All Regions). Set the new quota limit to 1 or more 
+3. In the "Limit Name" dropdown, select "GPUs (all regions)" and under "Locations" select "Global" (or "All locations").
+4. Click edit quotas and select the quota to edit (GPUs All Regions). Set the new quota limit to 1 or more.
 Your request may require confirmation, which Google claims typically takes two business days to get.
 
 You will have to wait a little bit until you see the text informing you the instance has been created. You can see the instance online [here](https://console.cloud.google.com/compute/) in your list of instances (note that this will be the page you have to go to later to stop your instance). 
@@ -188,10 +190,10 @@ git pull
 You should also update the fastai library:
 
 ``` bash
-sudo /opt/anaconda3/bin/conda install -c fastai fastai
+conda install -c fastai fastai
 ```
 
-Next from your [jupyter notebook](http://localhost:8080/tree), click on 'tutorials', 'fastai' and you should look at something like this
+Next, from your [jupyter notebook](http://localhost:8080/tree): click on 'tutorials', 'fastai', 'course-v3', and you should see something like this:
 
 <img alt="nb tuto" src="/images/jupyter.png" class="screenshot">
 

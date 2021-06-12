@@ -56,8 +56,7 @@ learn.fit_one_cycle(3, max_lr=slice(1e-6,1e-4))
 Now that you have trained your `learn` object you can export the `data` object and save the model weights with the following commands:
 
 ```python
-data.export()
-learn.save('resnet50')
+learn.export(path_img/'models/resnet50.pkl')
 ```
 
 **Zip model artefacts and upload to S3**
@@ -70,8 +69,7 @@ with tarfile.open(path_img/'models/model.tar.gz', 'w:gz') as f:
     t = tarfile.TarInfo('models')
     t.type = tarfile.DIRTYPE
     f.addfile(t)
-    f.add(path_img/'models/resnet50.pth', arcname='resnet50.pth')
-    f.add(path_img/'export.pkl', arcname='export.pkl')
+    f.add(path_img/'models/resnet50.pkl', arcname='resnet50.pkl')
 ```
 
 Now we can upload them to S3 with the following commands. 
@@ -95,7 +93,7 @@ To serve models in SageMaker, we need a script that implements 4 methods: `model
 * The `predict_fn` method takes the deserialized request object and performs inference against the loaded model.
 * The `output_fn` method takes the result of prediction and serializes this according to the response content type.
 
-The methods `input_fn` and `input_fn` are optional and if obmitted SageMaker will assume the input and output objects are of type [NPY](https://docs.scipy.org/doc/numpy/neps/npy-format.html) format with Content-Type `application/x-npy`.
+The methods `input_fn` and `output_fn` are optional and if obmitted SageMaker will assume the input and output objects are of type [NPY](https://docs.scipy.org/doc/numpy/neps/npy-format.html) format with Content-Type `application/x-npy`.
 
 For more information on how the PyTorch model serving works check the project page [here](https://github.com/aws/sagemaker-python-sdk/tree/master/src/sagemaker/pytorch#sagemaker-pytorch-model-server).
 
@@ -115,12 +113,7 @@ JPEG_CONTENT_TYPE = 'image/jpeg'
 def model_fn(model_dir):
     logger.info('model_fn')
     path = Path(model_dir)
-    print('Creating DataBunch object')
-    empty_data = ImageDataBunch.load_empty(path)
-    arch_name = os.path.splitext(os.path.split(glob.glob(f'{model_dir}/resnet*.pth')[0])[1])[0]
-    print(f'Model architecture is: {arch_name}')
-    arch = getattr(models, arch_name)    
-    learn = create_cnn(empty_data, arch, pretrained=False).load(path/f'{arch_name}')
+    learn = load_learner(model_dir, fname='resnet50.pkl')
     return learn
 
 # Deserialize the Invoke request body into an object we can perform prediction on
@@ -142,7 +135,7 @@ def predict_fn(input_object, model):
     print("--- Inference time: %s seconds ---" % (time.time() - start_time))
     print(f'Predicted class is {str(predict_class)}')
     print(f'Predict confidence score is {predict_values[predict_idx.item()].item()}')
-    return dict(class = str(predict_class),
+    return dict(class_name = str(predict_class),
         confidence = predict_values[predict_idx.item()].item())
 
 # Serialize the prediction result into the desired response content type
@@ -156,10 +149,12 @@ Save the script into a python such as `serve.py`
 
 ## Deploy to SageMaker
 
-First we need to create a RealTimePredictor class to accept jpeg images as input and output JSON. The default behaviour is to accept a numpy array.
+First we need to create a Predictor class to accept jpeg images as input and output JSON. The default behaviour is to accept a numpy array.
 
 ```python
-class ImagePredictor(RealTimePredictor):
+from sagemaker.predictor import Predictor
+
+class ImagePredictor(Predictor):
     def __init__(self, endpoint_name, sagemaker_session):
         super().__init__(endpoint_name, sagemaker_session=sagemaker_session, serializer=None, 
                          deserializer=json_deserializer, content_type='image/jpeg')
@@ -174,8 +169,10 @@ role = sagemaker.get_execution_role()
 In this example we will deploy our model to the instance type `ml.m4.xlarge`. We will pass in the name of our serving script e.g. `serve.py`. We will also pass in the S3 path of our model that we uploaded earlier.
 
 ```python
+from sagemaker.pytorch import PyTorchModel
+
 model=PyTorchModel(model_data=model_artefact, name=name_from_base("fastai-pets-model"),
-    role=role, framework_version='1.0.0', entry_point='serve.py', predictor_cls=ImagePredictor)
+    role=role, framework_version='1.0.0', py_version='py3', entry_point='serve.py', predictor_cls=ImagePredictor)
 
 predictor = model.deploy(initial_instance_count=1, instance_type='ml.m4.xlarge')
 ```
